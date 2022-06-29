@@ -18,7 +18,7 @@ jobs:
             ansible-playbook -i inventory.txt main4.yml
   
   #create_infrastructure: 
-    docker:
+    #docker:
       - image: amazon/aws-cli
     steps:
       - checkout
