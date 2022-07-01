@@ -1,23 +1,39 @@
 version: 2.1
 
 jobs:
-  configure_infrastructure: 
+  #configure_infrastructure: 
+    #docker:
+      #- image: python:3.7-alpine3.11
+    #steps:
+      #- checkout
+      #- add_ssh_keys:
+          #fingerprints: ["41:c1:8c:43:5c:6f:fe:30:51:9d:1f:ee:86:e6:89:6f"] 
+      #- run:
+          #name: Install dependencies
+          #command: |
+            #apk add --update ansible 
+      #- run:
+          #name: Configure server
+          #command: |
+            #ansible-playbook -i inventory.txt main.yml
+  smoke_test:
     docker:
-      - image: python:3.7-alpine3.11
+      - image:  alpine:latest
     steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints: ["41:c1:8c:43:5c:6f:fe:30:51:9d:1f:ee:86:e6:89:6f"] 
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update ansible 
-      - run:
-          name: Configure server
-          command: |
-            ansible-playbook -i inventory.txt main.yml
-  
+      - run:  apk add --update curl
+      - run:  
+          name: smoke test
+          command:  |
+            URL="https://blog.udacity.com/"
+            # Test if website exists
+            if curl -s --head ${URL}
+            then
+              return 0
+            else
+              return 1
+            fi
 workflows:
   my_workflow:
     jobs:
-      - configure_infrastructure
+      - smoke_test
+      #- configure_infrastructure
