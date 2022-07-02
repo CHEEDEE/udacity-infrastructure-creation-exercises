@@ -25,7 +25,7 @@ jobs:
       - run:  return 1
       - destroy_environment
   
-    #smoke_test:
+  #smoke_test:
     #docker:
       #- image:  alpine:latest
     #steps:
@@ -34,7 +34,7 @@ jobs:
           #name: smoke test
           #command:  |
             #URL="https://blog.udacity.com/"
-            ## Test if website exists
+            # Test if website exists
             #if curl -s --head ${URL}
             #then
               #return 0
@@ -57,6 +57,14 @@ jobs:
           #name: Configure server
           #command: |
             #ansible-playbook -i inventory.txt main.yml
+  smoke_test:
+    docker:
+      - image:  alpine:latest
+    steps:
+      - run:  
+          name: Test Job
+          command:  return 1
+      - destroy_environment
             
 workflows:
   my_workflow:
