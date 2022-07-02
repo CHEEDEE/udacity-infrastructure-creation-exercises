@@ -10,19 +10,19 @@ commands:
             aws cloudformation delete-stack --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7}
 
 jobs:
-  create_infrastructure:
-    docker:
-      - image:  amazon/aws-cli
-    steps:  
-      - checkout
-      - run:
-          name: Create a CloudFormation Stack
-          command:  |
-            aws cloudformation deploy \
-              --template-file template.yml \
-              --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7} \
-              --region us-east-1
-      #- run:  return 1
+  #create_infrastructure:
+    #docker:
+      #- image:  amazon/aws-cli
+    #steps:  
+      #- checkout
+      #- run:
+          #name: Create a CloudFormation Stack
+          #command:  |
+            #aws cloudformation deploy \
+              #--template-file template.yml \
+              #--stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7} \
+              #--region us-east-1
+      #- run:  return 1 -- uncomment to simulate a failure
       #- destroy_environment
 
   #configure_infrastructure: 
@@ -40,6 +40,45 @@ jobs:
           #name: Configure server
           #command: |
             #ansible-playbook -i inventory.txt main.yml
+
+
+  # Exercise: Promote to Production - Job 1
+  # Executes the bucket.yml - Deploy an S3 bucket, and interface with that bucket to synchronize the files between local and the bucket.
+  # Note that the `--parameter-overrides` let you specify a value that override parameter value in the bucket.yml template file.
+  create_and_deploy_front_end:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Execute bucket.yml - Create Cloudformation Stack
+          command: |
+            aws cloudformation deploy \
+            --template-file bucket.yml \
+            --stack-name stack-create-bucket-${CIRCLE_WORKFLOW_ID:0:7} \
+            --parameter-overrides MyBucketName="mybucket-${CIRCLE_WORKFLOW_ID:0:7}"
+      # Uncomment the step below if yoou wish to upload all contents of the current directory to the S3 bucket
+      # - run: aws s3 sync . s3://mybucket-${CIRCLE_WORKFLOW_ID:0:7} --delete
+
+
+  # Exercise: Promote to Production - Job 2
+  # Fetch and save the pipeline ID (bucket ID) responsible for the last release.
+  get_last_deployment_id:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum install -y tar gzip
+      - run:
+          name: Fetch and save the old pipeline ID (bucket name) responsible for the last release.
+          command: |
+            aws cloudformation \
+            list-exports --query "Exports[?Name==\`PipelineID\`].Value" \
+            --no-paginate --output text > ~/textfile.txt
+      - persist_to_workspace:
+          root: ~/
+          paths: 
+            - textfile.txt 
 
   #smoke_test:
     #docker:
