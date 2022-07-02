@@ -64,7 +64,7 @@ jobs:
       - run:  
           name: Test Job
           command:  return 1
-      - destroy_environment
+  - destroy_environment
             
 workflows:
   my_workflow:
