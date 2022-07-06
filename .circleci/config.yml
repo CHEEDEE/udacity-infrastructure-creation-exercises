@@ -55,6 +55,8 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
+          at: ~/my-app
+
       - add_ssh_keys:
           fingerprints: ["41:c1:8c:43:5c:6f:fe:30:51:9d:1f:ee:86:e6:89:6f"] 
       - run: cat ~/my-app/inventory.txt
