@@ -69,9 +69,9 @@ jobs:
 
 
 workflows:
-my_workflow:
-  jobs:
-    - create_infrastructure
-    - update_inventory
-    - configure_infrastructure
-    
+  my_workflow:
+    jobs:
+      - create_infrastructure
+      - update_inventory
+      - configure_infrastructure
+      
