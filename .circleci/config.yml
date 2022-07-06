@@ -10,36 +10,62 @@ commands:
             aws cloudformation delete-stack --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7}
 
 jobs:
-  #create_infrastructure:
-    #docker:
-      #- image:  amazon/aws-cli
-    #steps:  
-      #- checkout
-      #- run:
-          #name: Create a CloudFormation Stack
-          #command:  |
-            #aws cloudformation deploy \
-              #--template-file template.yml \
-              #--stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7} \
-              #--region us-east-1
+  create_infrastructure:
+    docker:
+      - image:  amazon/aws-cli
+    steps:  
+      - checkout
+      - run:
+          name: Create a CloudFormation Stack
+          command:  |
+            aws cloudformation deploy \
+              --template-file template.yml \
+              --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:7} \
+              --region us-east-1
       #- run:  return 1 -- uncomment to simulate a failure
       #- destroy_environment
 
-  #configure_infrastructure: 
-    #docker:
-      #- image: python:3.7-alpine3.11
-    #steps:
-      #- checkout
-      #- add_ssh_keys:
-          #fingerprints: ["41:c1:8c:43:5c:6f:fe:30:51:9d:1f:ee:86:e6:89:6f"] 
-      #- run:
-          #name: Install dependencies
-          #command: |
+#Update inventory with IP of new ec2 instance
+  update_inventory:
+    docker: 
+      - image:  amazon/awscli
+    working_directory: ~/my-app
+    steps:
+      - checkout
+      - run:
+          name: install tar
+          command:  yum install -y tar gzip
+
+      - run:
+          name: Update the Ansible inventory file
+          command: aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text >> ~/my-app/inventory.txt
+      
+      #Save to workspace
+      - persist_to_workspace:
+          root: ~/my-app
+          paths:  
+            - inventory.txt
+
+  configure_infrastructure: 
+    docker:
+      - image: python:3.7-alpine3.11
+
+    working_directory: ~/my-app
+
+    steps:
+      - checkout
+      - attach_workspace:
+      - add_ssh_keys:
+          fingerprints: ["41:c1:8c:43:5c:6f:fe:30:51:9d:1f:ee:86:e6:89:6f"] 
+      - run: cat ~/my-app/inventory.txt
+      - run:
+          name: Install Ansible
+          command: |
             #apk add --update ansible 
-      #- run:
-          #name: Configure server
-          #command: |
-            #ansible-playbook -i inventory.txt main.yml
+      - run:
+          name: Configure server
+          command: |
+            ansible-playbook -i ~/my-app/inventory.txt main.yml
 
 
   # Exercise: Promote to Production - Job 1
