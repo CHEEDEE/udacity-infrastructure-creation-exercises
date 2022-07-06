@@ -28,7 +28,7 @@ jobs:
 #Update inventory with IP of new ec2 instance
   update_inventory:
     docker: 
-      - image:  amazon/awscli
+      - image:  amazon/aws-cli
     working_directory: ~/my-app
     steps:
       - checkout
